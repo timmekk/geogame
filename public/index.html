@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>🌍 GeoQuiz – Multiplayer</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
@@ -10,38 +10,38 @@
 :root{
   --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;
   --text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--gold:#f0c040;
-  --green:#3fb950;--red:#f85149;--orange:#f78166;
+  --green:#3fb950;--red:#f85149;
 }
 html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   background:var(--bg);color:var(--text);overflow:hidden}
-a{color:inherit}
-input,button{font-family:inherit}
+input,button,textarea{font-family:inherit}
 
 /* ── SCREENS ── */
 .screen{display:none;height:100vh;flex-direction:column;align-items:center;justify-content:center}
 .screen.active{display:flex}
-#screen-game.active{align-items:stretch;justify-content:flex-start;overflow:hidden}
+#screen-game.active,#screen-create.active{align-items:stretch;justify-content:flex-start;overflow:hidden}
 
-/* ── CARD ── */
+/* ── KARTE ── */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;
   padding:1.75rem;width:100%;max-width:440px}
 .card-title{font-size:1.75rem;font-weight:700;text-align:center;margin-bottom:.25rem}
 .card-sub{color:var(--muted);text-align:center;font-size:.875rem;margin-bottom:1.75rem}
 
 /* ── FORM ── */
-.fg{margin-bottom:1rem}
-.fg label{display:block;font-size:.75rem;color:var(--muted);margin-bottom:.4rem;
+.fg{margin-bottom:.875rem}
+.fg label{display:block;font-size:.72rem;color:var(--muted);margin-bottom:.35rem;
   text-transform:uppercase;letter-spacing:.06em}
-.fg input{width:100%;padding:.625rem .875rem;background:var(--surface2);
-  border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;outline:none}
-.fg input:focus{border-color:var(--accent)}
+.fg input,.fg textarea{width:100%;padding:.6rem .875rem;background:var(--surface2);
+  border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.95rem;
+  outline:none;resize:none}
+.fg input:focus,.fg textarea:focus{border-color:var(--accent)}
 .divider{display:flex;align-items:center;gap:.75rem;color:var(--muted);
-  font-size:.8rem;margin:1.25rem 0}
+  font-size:.8rem;margin:1.1rem 0}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
 
 /* ── BUTTONS ── */
 .btn{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;
-  padding:.7rem;border:none;border-radius:8px;font-size:.95rem;font-weight:600;
+  padding:.65rem;border:none;border-radius:8px;font-size:.9rem;font-weight:600;
   cursor:pointer;transition:opacity .15s,transform .1s}
 .btn:hover:not(:disabled){opacity:.85}
 .btn:active:not(:disabled){transform:scale(.98)}
@@ -50,107 +50,154 @@ input,button{font-family:inherit}
 .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
 .btn-gold{background:var(--gold);color:#0d1117}
 .btn-green{background:var(--green);color:#0d1117}
-.btn+.btn{margin-top:.6rem}
+.btn+.btn{margin-top:.5rem}
 
 /* ── LOBBY ── */
 .room-code-box{background:var(--surface2);border:1px solid var(--border);border-radius:12px;
-  padding:1rem;text-align:center;margin-bottom:1.25rem}
-.rc-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.25rem}
+  padding:1rem;text-align:center;margin-bottom:1.2rem}
+.rc-label{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.2rem}
 .rc-value{font-size:2.75rem;font-weight:800;letter-spacing:.3em;color:var(--accent);font-family:monospace}
 .rc-link{font-size:.72rem;color:var(--muted);word-break:break-all;margin-top:.5rem}
 .rc-link a{color:var(--muted);text-decoration:underline}
-.copy-btn{display:inline-block;margin-top:.4rem;font-size:.72rem;padding:.2rem .6rem;
-  background:var(--surface);border:1px solid var(--border);border-radius:4px;
-  cursor:pointer;color:var(--muted)}
+.copy-btn{display:inline-block;margin-top:.35rem;font-size:.72rem;padding:.2rem .6rem;
+  background:var(--surface);border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--muted)}
 .copy-btn:hover{color:var(--text)}
-.section-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;
-  letter-spacing:.08em;margin-bottom:.5rem}
+.sec-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.45rem}
 .player-list{margin-bottom:1rem}
-.player-item{display:flex;align-items:center;gap:.625rem;padding:.5rem 0;
+.player-item{display:flex;align-items:center;gap:.6rem;padding:.45rem 0;
   border-bottom:1px solid var(--border)}
 .player-item:last-child{border-bottom:none}
 .p-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
 .p-name{flex:1;font-size:.9rem}
-.p-you{font-size:.72rem;color:var(--muted)}
+.p-you{font-size:.7rem;color:var(--muted)}
 .badge{font-size:.65rem;padding:.15rem .45rem;border-radius:4px;font-weight:600}
 .badge-host{background:var(--gold);color:#000}
-.badge-ready{background:var(--green);color:#000}
 .lobby-hint{text-align:center;font-size:.8rem;color:var(--muted);margin-top:.5rem}
 
-/* ── GAME SCREEN ── */
+/* ── ERSTELLUNGS-SCREEN ── */
+#screen-create.active{background:var(--bg)}
+#create-header{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:.625rem .875rem;flex-shrink:0;z-index:700}
+.create-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.create-title{font-size:.95rem;font-weight:700}
+.create-progress-pills{display:flex;gap:.3rem}
+.pill{width:28px;height:6px;border-radius:3px;background:var(--surface2);border:1px solid var(--border)}
+.pill.done{background:var(--green);border-color:var(--green)}
+.pill.active{background:var(--accent);border-color:var(--accent)}
+/* search row */
+.search-row{display:flex;gap:.4rem}
+.search-row input{flex:1;padding:.45rem .7rem;background:var(--surface2);
+  border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;outline:none}
+.search-row input:focus{border-color:var(--accent)}
+.search-row button{padding:.45rem .7rem;background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);cursor:pointer;font-size:.85rem;white-space:nowrap}
+.search-row button:hover{border-color:var(--accent)}
+/* map */
+#create-map-wrap{flex:1;position:relative;min-height:0}
+#create-map{height:100%;width:100%}
+.create-map-hint{position:absolute;top:.5rem;left:50%;transform:translateX(-50%);
+  background:rgba(13,17,23,.85);border:1px solid var(--border);border-radius:8px;
+  padding:.35rem .75rem;font-size:.78rem;color:var(--muted);pointer-events:none;
+  z-index:500;white-space:nowrap}
+/* footer */
+#create-footer{background:var(--surface);border-top:1px solid var(--border);
+  flex-shrink:0;max-height:46vh;overflow-y:auto}
+.create-form-section{padding:.75rem .875rem;border-bottom:1px solid var(--border)}
+.marker-status{display:flex;align-items:center;gap:.5rem;font-size:.8rem;
+  padding:.4rem .6rem;background:var(--surface2);border-radius:6px;
+  border:1px solid var(--border);margin-bottom:.6rem}
+.marker-status.set{border-color:var(--green);color:var(--green)}
+.submit-row{display:flex;gap:.5rem;align-items:stretch}
+.submit-row .btn{flex:1;padding:.55rem}
+.create-list-section{padding:.625rem .875rem}
+.create-list-title{font-size:.72rem;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.06em;margin-bottom:.4rem}
+.created-q-item{display:flex;align-items:flex-start;gap:.5rem;padding:.4rem 0;
+  border-bottom:1px solid var(--border);font-size:.82rem}
+.created-q-item:last-child{border-bottom:none}
+.cq-num{color:var(--accent);font-weight:700;flex-shrink:0;width:1.2rem}
+.cq-text{flex:1;color:var(--text);line-height:1.3}
+.cq-hint{font-size:.72rem;color:var(--muted)}
+/* waiting panel */
+.all-progress-section{padding:.625rem .875rem;border-top:1px solid var(--border)}
+.all-prog-title{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.45rem}
+.prog-row{display:flex;align-items:center;gap:.5rem;padding:.3rem 0;font-size:.82rem}
+.prog-bar-wrap{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.prog-bar{height:100%;background:var(--accent);border-radius:3px;transition:width .3s}
+.prog-bar.full{background:var(--green)}
+.prog-count{font-size:.72rem;color:var(--muted);flex-shrink:0;width:2rem;text-align:right}
+.waiting-msg{text-align:center;padding:.75rem;font-size:.85rem;color:var(--muted)}
+
+/* ── SPIELFELD ── */
 #question-bar{background:var(--surface);border-bottom:1px solid var(--border);
   padding:.625rem 1rem;flex-shrink:0;z-index:600}
-.q-meta{display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:.2rem}
-.q-progress{font-size:.72rem;color:var(--muted);font-weight:600;letter-spacing:.04em}
-.q-timer{font-size:.72rem;color:var(--muted)}
+.q-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:.2rem}
+.q-progress{font-size:.72rem;color:var(--muted);font-weight:600}
+.q-creator{font-size:.7rem;color:var(--muted);font-style:italic}
 .q-text{font-size:.975rem;font-weight:600;line-height:1.4}
 #map-container{flex:1;position:relative;min-height:0}
 #map{height:100%;width:100%}
 #game-footer{background:var(--surface);border-top:1px solid var(--border);
   padding:.625rem 1rem;flex-shrink:0;z-index:600}
-.players-bar{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem}
+.players-bar{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.45rem}
 .pstat{display:flex;align-items:center;gap:.3rem;font-size:.78rem;padding:.15rem .4rem;
   border-radius:4px;background:var(--surface2);border:1px solid var(--border);transition:.2s}
 .pstat.locked{border-color:var(--green)}
 .pstat-dot{width:7px;height:7px;border-radius:50%}
 .pstat-name{color:var(--muted)}
 .pstat.locked .pstat-name{color:var(--text)}
-.pstat-icon{font-size:.72rem}
-.footer-row{display:flex;gap:.75rem;align-items:center}
-#lock-btn{flex:1;padding:.6rem;background:var(--surface2);color:var(--muted);
+#lock-btn{width:100%;padding:.6rem;background:var(--surface2);color:var(--muted);
   border:1px solid var(--border);border-radius:8px;font-size:.9rem;font-weight:600;cursor:pointer}
 #lock-btn.ready{background:var(--accent);color:#0d1117;border-color:transparent}
-#lock-btn.locked{background:var(--green);color:#0d1117;border-color:transparent;cursor:default}
+#lock-btn.locked-state{background:var(--green);color:#0d1117;border-color:transparent;cursor:default}
 #lock-btn:disabled{opacity:.4;cursor:not-allowed}
 
-/* ── RESULTS SLIDE-UP ── */
+/* ── ERGEBNIS ── */
 #results-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:800;
-  display:none;flex-direction:column;justify-content:flex-end;
-  background:rgba(0,0,0,.65)}
+  display:none;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,.65)}
 #results-overlay.show{display:flex}
 .results-sheet{background:var(--surface);border-radius:20px 20px 0 0;
-  border-top:1px solid var(--border);padding:1.25rem;
-  max-height:82vh;overflow-y:auto}
-.res-title{font-size:1.1rem;font-weight:700;margin-bottom:.2rem}
-.res-info{font-size:.8rem;color:var(--muted);margin-bottom:1rem;
-  padding:.5rem .75rem;background:var(--surface2);border-radius:8px;
+  border-top:1px solid var(--border);padding:1.2rem;max-height:80vh;overflow-y:auto}
+.res-title{font-size:1.05rem;font-weight:700;margin-bottom:.2rem}
+.res-creator{font-size:.75rem;color:var(--muted);margin-bottom:.25rem;font-style:italic}
+.res-info{font-size:.8rem;color:var(--muted);margin-bottom:.875rem;
+  padding:.45rem .7rem;background:var(--surface2);border-radius:8px;
   border-left:3px solid var(--green)}
-.result-item{display:flex;align-items:center;gap:.625rem;padding:.625rem 0;
+.result-item{display:flex;align-items:center;gap:.6rem;padding:.55rem 0;
   border-bottom:1px solid var(--border)}
 .result-item:last-child{border-bottom:none}
-.res-rank{font-size:1.2rem;width:2rem;text-align:center;flex-shrink:0}
+.res-rank{font-size:1.15rem;width:2rem;text-align:center;flex-shrink:0}
 .res-marker{width:24px;height:24px;border-radius:50%;display:flex;
   align-items:center;justify-content:center;font-size:.65rem;font-weight:700;
   color:white;flex-shrink:0}
 .res-info-col{flex:1;min-width:0}
 .res-name{font-weight:600;font-size:.875rem}
 .res-dist{font-size:.75rem;color:var(--muted)}
-.res-pts{font-size:1rem;font-weight:700;color:var(--gold);flex-shrink:0}
+.res-pts{font-size:.95rem;font-weight:700;color:var(--gold);flex-shrink:0}
 .res-pts.zero{color:var(--muted)}
-.ready-area{margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem}
+.ready-area{margin-top:.875rem;border-top:1px solid var(--border);padding-top:.875rem}
 .ready-count{text-align:center;font-size:.78rem;color:var(--muted);margin-bottom:.5rem}
 
-/* ── GAME OVER ── */
+/* ── SPIELENDE ── */
 #screen-gameover.active{background:var(--bg)}
 .go-card{background:var(--surface);border:1px solid var(--border);
   border-radius:16px;padding:2rem;width:100%;max-width:420px}
 .go-title{font-size:2rem;font-weight:700;text-align:center;margin-bottom:1.5rem}
-.score-item{display:flex;align-items:center;gap:.875rem;
-  padding:.75rem 0;border-bottom:1px solid var(--border)}
+.score-item{display:flex;align-items:center;gap:.875rem;padding:.7rem 0;
+  border-bottom:1px solid var(--border)}
 .score-item:last-child{border-bottom:none}
-.sc-rank{font-size:1.4rem;width:2.25rem;text-align:center}
-.sc-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.sc-rank{font-size:1.35rem;width:2.25rem;text-align:center}
+.sc-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
 .sc-name{flex:1;font-weight:600}
-.sc-pts{font-size:1.1rem;font-weight:700;color:var(--gold)}
+.sc-pts{font-size:1.05rem;font-weight:700;color:var(--gold)}
 
 /* ── TOAST ── */
-#toast{position:fixed;top:1rem;left:50%;transform:translateX(-50%);
-  background:var(--surface2);border:1px solid var(--border);
-  border-radius:8px;padding:.5rem 1rem;font-size:.825rem;
-  z-index:9999;display:none;white-space:nowrap;pointer-events:none}
+#toast{position:fixed;top:.875rem;left:50%;transform:translateX(-50%);
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  padding:.5rem 1rem;font-size:.825rem;z-index:9999;display:none;
+  white-space:nowrap;pointer-events:none}
 
-/* ── MAP CUSTOM ── */
+/* ── LEAFLET OVERRIDES ── */
 .leaflet-container{background:#0d1520!important;font-family:inherit}
 .leaflet-popup-content-wrapper{background:var(--surface);border:1px solid var(--border);
   color:var(--text);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
@@ -159,42 +206,29 @@ input,button{font-family:inherit}
 .leaflet-popup-close-button{color:var(--muted)!important}
 .player-pin{width:28px;height:28px;border-radius:50%;display:flex;
   align-items:center;justify-content:center;font-size:.65rem;font-weight:700;
-  color:#fff;border:2.5px solid rgba(255,255,255,.5);
+  color:#fff;border:2.5px solid rgba(255,255,255,.45);
   box-shadow:0 2px 10px rgba(0,0,0,.5)}
-.player-pin.me{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.25),0 2px 10px rgba(0,0,0,.5)}
+.player-pin.me-pin{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.2),0 2px 10px rgba(0,0,0,.5)}
 .correct-pin{width:22px;height:22px;border-radius:50%;background:#ffd700;
-  border:3px solid #fff;box-shadow:0 0 0 4px rgba(255,215,0,.35),0 2px 12px rgba(0,0,0,.5)}
-.cap-dot{width:5px;height:5px;border-radius:50%;background:#ffd700;opacity:.65}
-.cap-tooltip{background:var(--surface)!important;border:1px solid var(--border)!important;
-  color:var(--text)!important;font-size:.75rem;padding:.25rem .5rem!important;border-radius:6px!important}
-.cap-tooltip::before{display:none}
-
-@media(max-width:480px){
-  .card{padding:1.25rem;border-radius:0;max-width:100%;height:100vh;
-    display:flex;flex-direction:column;justify-content:center}
-  .rc-value{font-size:2.25rem}
-  .q-text{font-size:.9rem}
-}
+  border:3px solid #fff;box-shadow:0 0 0 4px rgba(255,215,0,.3),0 2px 12px rgba(0,0,0,.5)}
+.answer-pin{width:24px;height:24px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;font-size:.7rem;font-weight:700;
+  color:#fff;border:2px solid rgba(255,255,255,.6);box-shadow:0 2px 8px rgba(0,0,0,.4)}
 </style>
 </head>
 <body>
 
-<!-- ╔══════════════════════════════════╗ -->
-<!-- ║       STARTSEITE                 ║ -->
-<!-- ╚══════════════════════════════════╝ -->
+<!-- ══ STARTSEITE ══ -->
 <div id="screen-home" class="screen active">
   <div class="card">
     <div class="card-title">🌍 GeoQuiz</div>
-    <div class="card-sub">Multiplayer · Wer kennt die Welt am besten?</div>
-
+    <div class="card-sub">Erstellt eure eigenen Fragen – und beweist, wer die Welt kennt!</div>
     <div class="fg">
       <label>Dein Name</label>
       <input type="text" id="inp-name" placeholder="z.B. Max" maxlength="18" autocomplete="off">
     </div>
     <button class="btn btn-primary" onclick="createRoom()">🏠 Neuen Raum erstellen</button>
-
     <div class="divider">oder beitreten</div>
-
     <div class="fg">
       <label>Raum-Code</label>
       <input type="text" id="inp-code" placeholder="z.B. ABC123" maxlength="6"
@@ -205,60 +239,109 @@ input,button{font-family:inherit}
   </div>
 </div>
 
-<!-- ╔══════════════════════════════════╗ -->
-<!-- ║       LOBBY                      ║ -->
-<!-- ╚══════════════════════════════════╝ -->
+<!-- ══ LOBBY ══ -->
 <div id="screen-lobby" class="screen">
   <div class="card">
     <div class="room-code-box">
       <div class="rc-label">Raum-Code</div>
       <div class="rc-value" id="lobby-code">──────</div>
       <div class="rc-link">
-        <a id="lobby-link-a" href="#">─</a>
-        <br><button class="copy-btn" onclick="copyLink()">📋 Link kopieren</button>
+        <a id="lobby-link-a" href="#">─</a><br>
+        <button class="copy-btn" onclick="copyLink()">📋 Link kopieren</button>
       </div>
     </div>
-
-    <div class="section-label">Spieler im Raum</div>
+    <div class="sec-label">Spieler im Raum</div>
     <div class="player-list" id="lobby-players"></div>
-
     <button class="btn btn-primary" id="start-btn" onclick="startGame()" style="display:none">
-      ▶ Spiel starten
+      ✏️ Fragenerstellung starten
     </button>
-    <div class="lobby-hint" id="lobby-hint">Warte auf den Host...</div>
+    <div class="lobby-hint" id="lobby-hint">Warte auf den Host …</div>
+    <div style="margin-top:.75rem;padding:.625rem;background:var(--surface2);border-radius:8px;
+      border:1px solid var(--border);font-size:.78rem;color:var(--muted);line-height:1.5">
+      ℹ️ Jeder Spieler erstellt <b style="color:var(--text)">5 eigene Fragen</b> – dann spielen alle gemeinsam mit diesen Fragen.
+    </div>
   </div>
 </div>
 
-<!-- ╔══════════════════════════════════╗ -->
-<!-- ║       SPIELFELD                  ║ -->
-<!-- ╚══════════════════════════════════╝ -->
+<!-- ══ FRAGEN ERSTELLEN ══ -->
+<div id="screen-create" class="screen">
+
+  <div id="create-header">
+    <div class="create-top">
+      <div class="create-title" id="create-title">✏️ Frage 1 / 5 erstellen</div>
+      <div class="create-progress-pills" id="create-pills"></div>
+    </div>
+    <div class="search-row">
+      <input type="text" id="loc-search" placeholder="Ort suchen, z.B. »Kolosseum Rom«">
+      <button onclick="searchLoc()">🔍 Suchen</button>
+    </div>
+  </div>
+
+  <div id="create-map-wrap">
+    <div id="create-map"></div>
+    <div class="create-map-hint" id="create-map-hint">👆 Klicke auf den gesuchten Ort</div>
+  </div>
+
+  <div id="create-footer">
+    <div class="create-form-section">
+      <div class="fg" style="margin-bottom:.6rem">
+        <label>Deine Frage</label>
+        <textarea id="create-q-text" rows="2"
+          placeholder="z.B. »Wo steht das Kolosseum?«"
+          oninput="updateSubmitBtn()"></textarea>
+      </div>
+      <div class="fg" style="margin-bottom:.6rem">
+        <label>Antwort-Hinweis <span style="font-weight:400;text-transform:none">(optional, wird nach der Runde angezeigt)</span></label>
+        <input type="text" id="create-q-hint" placeholder="z.B. »Rom, Italien«">
+      </div>
+      <div class="marker-status" id="marker-status">
+        📍 Noch kein Punkt auf der Karte gesetzt
+      </div>
+      <div class="submit-row">
+        <button class="btn btn-primary" id="create-submit-btn" onclick="submitQuestion()" disabled>
+          ➕ Frage hinzufügen
+        </button>
+      </div>
+    </div>
+
+    <div class="create-list-section" id="created-list-section" style="display:none">
+      <div class="create-list-title">Deine bisherigen Fragen</div>
+      <div id="created-q-list"></div>
+    </div>
+
+    <div class="all-progress-section">
+      <div class="all-prog-title">Fortschritt aller Spieler</div>
+      <div id="all-prog-list"></div>
+      <div class="waiting-msg" id="waiting-msg" style="display:none">
+        ✅ Du bist fertig! Warte auf die anderen …
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SPIELFELD ══ -->
 <div id="screen-game" class="screen">
   <div id="question-bar">
     <div class="q-meta">
       <span class="q-progress" id="q-progress">Frage 1 / 10</span>
-      <span class="q-timer" id="q-timer"></span>
+      <span class="q-creator" id="q-creator"></span>
     </div>
-    <div class="q-text" id="q-text">Lade Frage …</div>
+    <div class="q-text" id="q-text">Lade …</div>
   </div>
   <div id="map-container">
     <div id="map"></div>
   </div>
   <div id="game-footer">
     <div class="players-bar" id="players-bar"></div>
-    <div class="footer-row">
-      <button id="lock-btn" onclick="lockAnswer()" disabled>
-        📍 Klicke auf die Karte
-      </button>
-    </div>
+    <button id="lock-btn" onclick="lockAnswer()" disabled>📍 Klicke auf die Karte</button>
   </div>
 </div>
 
-<!-- ╔══════════════════════════════════╗ -->
-<!-- ║       ERGEBNIS-SHEET             ║ -->
-<!-- ╚══════════════════════════════════╝ -->
+<!-- ══ ERGEBNIS-SHEET ══ -->
 <div id="results-overlay">
   <div class="results-sheet">
     <div class="res-title" id="res-title">Ergebnis</div>
+    <div class="res-creator" id="res-creator"></div>
     <div class="res-info" id="res-info"></div>
     <div id="res-list"></div>
     <div class="ready-area">
@@ -268,9 +351,7 @@ input,button{font-family:inherit}
   </div>
 </div>
 
-<!-- ╔══════════════════════════════════╗ -->
-<!-- ║       SPIELENDE                  ║ -->
-<!-- ╚══════════════════════════════════╝ -->
+<!-- ══ SPIELENDE ══ -->
 <div id="screen-gameover" class="screen">
   <div class="go-card">
     <div class="go-title">🏆 Spielende!</div>
@@ -281,7 +362,6 @@ input,button{font-family:inherit}
   </div>
 </div>
 
-<!-- TOAST -->
 <div id="toast"></div>
 
 <!-- ── SCRIPTS ── -->
@@ -291,353 +371,437 @@ input,button{font-family:inherit}
 <script>
 // ── KONSTANTEN ───────────────────────────────────────────────────────────────
 const COLORS = ['#ff4757','#2ed573','#1e90ff','#ffa502','#ff6b81','#7bed9f','#a29bfe','#fdcb6e'];
-
-const CAPITALS = [
-  [52.52,13.405,"Berlin","Deutschland"],[48.856,2.352,"Paris","Frankreich"],
-  [51.507,-0.127,"London","Vereinigtes Königreich"],[40.416,-3.703,"Madrid","Spanien"],
-  [41.902,12.496,"Rom","Italien"],[52.37,4.895,"Amsterdam","Niederlande"],
-  [50.85,4.351,"Brüssel","Belgien"],[47.376,8.541,"Bern","Schweiz"],
-  [48.208,16.373,"Wien","Österreich"],[55.676,12.568,"Kopenhagen","Dänemark"],
-  [59.913,10.752,"Oslo","Norwegen"],[59.329,18.068,"Stockholm","Schweden"],
-  [60.169,24.938,"Helsinki","Finnland"],[64.135,-21.895,"Reykjavik","Island"],
-  [38.716,-9.139,"Lissabon","Portugal"],[37.983,23.727,"Athen","Griechenland"],
-  [44.817,20.463,"Belgrad","Serbien"],[45.815,15.981,"Zagreb","Kroatien"],
-  [43.856,18.413,"Sarajevo","Bosnien"],[47.01,28.863,"Chișinău","Moldau"],
-  [50.45,30.523,"Kyiv","Ukraine"],[53.904,27.561,"Minsk","Belarus"],
-  [54.687,25.279,"Vilnius","Litauen"],[56.949,24.105,"Riga","Lettland"],
-  [59.437,24.753,"Tallinn","Estland"],[47.497,19.04,"Budapest","Ungarn"],
-  [50.075,14.437,"Prag","Tschechien"],[52.229,21.012,"Warschau","Polen"],
-  [48.148,17.107,"Bratislava","Slowakei"],[46.056,14.505,"Ljubljana","Slowenien"],
-  [44.426,26.102,"Bukarest","Rumänien"],[42.697,23.321,"Sofia","Bulgarien"],
-  [35.899,14.514,"Valletta","Malta"],[35.185,33.382,"Nikosia","Zypern"],
-  [55.755,37.617,"Moskau","Russland"],[39.904,116.407,"Peking","China"],
-  [35.676,139.65,"Tokio","Japan"],[37.566,126.977,"Seoul","Südkorea"],
-  [28.613,77.209,"Neu-Delhi","Indien"],[23.81,90.412,"Dhaka","Bangladesch"],
-  [33.693,73.065,"Islamabad","Pakistan"],[34.516,69.183,"Kabul","Afghanistan"],
-  [27.717,85.324,"Kathmandu","Nepal"],[6.927,79.861,"Colombo","Sri Lanka"],
-  [17.91,102.8,"Vientiane","Laos"],[12.365,104.991,"Phnom Penh","Kambodscha"],
-  [16.866,96.195,"Naypyidaw","Myanmar"],[13.756,100.501,"Bangkok","Thailand"],
-  [21.027,105.834,"Hanoi","Vietnam"],[3.139,101.686,"Kuala Lumpur","Malaysia"],
-  [1.352,103.819,"Singapur","Singapur"],[-6.208,106.845,"Jakarta","Indonesien"],
-  [14.599,120.984,"Manila","Philippinen"],[47.886,106.905,"Ulaanbaatar","Mongolei"],
-  [41.299,69.24,"Taschkent","Usbekistan"],[42.87,74.59,"Bischkek","Kirgisistan"],
-  [37.96,58.326,"Aschgabat","Turkmenistan"],[51.18,71.446,"Astana","Kasachstan"],
-  [38.559,68.787,"Duschanbe","Tadschikistan"],[24.466,54.36,"Abu Dhabi","VAE"],
-  [51.531,45.684,"Riad","Saudi-Arabien"],[33.315,44.366,"Bagdad","Irak"],
-  [35.689,51.389,"Teheran","Iran"],[39.933,32.859,"Ankara","Türkei"],
-  [33.886,35.513,"Beirut","Libanon"],[31.768,35.213,"Jerusalem","Israel"],
-  [31.952,35.933,"Amman","Jordanien"],[23.588,58.382,"Muskat","Oman"],
-  [25.285,51.531,"Doha","Katar"],[29.375,47.977,"Kuwait-Stadt","Kuwait"],
-  [33.513,36.276,"Damaskus","Syrien"],[15.369,44.191,"Sanaa","Jemen"],
-  [30.044,31.235,"Kairo","Ägypten"],[-25.747,28.229,"Pretoria","Südafrika"],
-  [0.347,32.582,"Kampala","Uganda"],[-1.94,29.873,"Kigali","Ruanda"],
-  [-6.165,35.739,"Dodoma","Tansania"],[-13.962,33.774,"Lilongwe","Malawi"],
-  [-15.416,28.283,"Lusaka","Sambia"],[-17.825,31.033,"Harare","Simbabwe"],
-  [-25.969,32.573,"Maputo","Mosambik"],[-22.906,18.424,"Windhoek","Namibia"],
-  [-24.628,25.923,"Gaborone","Botswana"],[4.361,18.555,"Bangui","Zentralafrika"],
-  [3.848,11.502,"Yaoundé","Kamerun"],[0.39,9.454,"Libreville","Gabun"],
-  [-4.263,15.242,"Brazzaville","Kongo"],[-4.321,15.321,"Kinshasa","DR Kongo"],
-  [-18.91,47.536,"Antananarivo","Madagaskar"],[14.693,-17.444,"Dakar","Senegal"],
-  [13.512,-2.112,"Ouagadougou","Burkina Faso"],[13.513,2.109,"Niamey","Niger"],
-  [12.104,15.044,"N'Djamena","Tschad"],[15.551,32.532,"Khartum","Sudan"],
-  [11.825,42.59,"Dschibuti","Dschibuti"],[2.046,45.318,"Mogadischu","Somalia"],
-  [9.025,38.746,"Addis Abeba","Äthiopien"],[9.057,7.489,"Abuja","Nigeria"],
-  [5.555,-0.196,"Accra","Ghana"],[6.137,1.212,"Lomé","Togo"],
-  [6.29,-10.76,"Monrovia","Liberia"],[5.36,-4.008,"Yamoussoukro","Elfenbeinküste"],
-  [12.364,-1.533,"Bamako","Mali"],[18.073,-15.958,"Nouakchott","Mauretanien"],
-  [32.887,13.191,"Tripolis","Libyen"],[36.806,10.181,"Tunis","Tunesien"],
-  [36.737,3.086,"Algier","Algerien"],[33.971,-6.849,"Rabat","Marokko"],
-  [38.907,-77.036,"Washington D.C.","USA"],[45.421,-75.691,"Ottawa","Kanada"],
-  [-15.78,-47.929,"Brasília","Brasilien"],[-34.603,-58.381,"Buenos Aires","Argentinien"],
-  [-33.448,-70.669,"Santiago","Chile"],[-12.046,-77.042,"Lima","Peru"],
-  [-0.18,-78.467,"Quito","Ecuador"],[4.711,-74.072,"Bogotá","Kolumbien"],
-  [10.48,-66.903,"Caracas","Venezuela"],[23.113,-82.366,"Havanna","Kuba"],
-  [18.486,-69.931,"Santo Domingo","Dom. Republik"],[18.594,-72.307,"Port-au-Prince","Haiti"],
-  [14.082,-87.206,"Tegucigalpa","Honduras"],[12.136,-86.891,"Managua","Nicaragua"],
-  [9.928,-84.09,"San José","Costa Rica"],[8.993,-79.519,"Panama-Stadt","Panama"],
-  [14.634,-90.506,"Guatemala-Stadt","Guatemala"],[13.692,-89.218,"San Salvador","El Salvador"],
-  [-16.489,-68.119,"La Paz","Bolivien"],[-25.286,-57.647,"Asunción","Paraguay"],
-  [-34.894,-56.067,"Montevideo","Uruguay"],[5.866,-55.166,"Paramaribo","Suriname"],
-  [6.801,-58.155,"Georgetown","Guyana"],
-  [-35.28,149.13,"Canberra","Australien"],[-41.286,174.776,"Wellington","Neuseeland"],
-  [-9.443,160.031,"Honiara","Salomonen"],[-18.141,178.441,"Suva","Fidschi"],
-  [-21.139,-175.204,"Nukuʻalofa","Tonga"],[-13.85,-171.751,"Apia","Samoa"]
-];
+const QUESTIONS_PER_PLAYER = 5;
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let socket, map;
+let socket;
+let gameMap = null, createMap = null;
+let gameTiles = null, createTiles = null;
+let gameMapInited = false, createMapInited = false;
 let myId = null, colorMap = {}, playerState = {};
 let myMarker = null, myLatLng = null, isLocked = false;
 let resultMarkers = [], correctMarker = null;
 let currentPhase = 'home', currentRoom = null;
-let mapInited = false;
 
-// ── KARTE ────────────────────────────────────────────────────────────────────
-function ensureMap() {
-  if (mapInited) { setTimeout(() => map.invalidateSize(), 80); return; }
-  mapInited = true;
+// Create-screen state
+let createAnswerLat = null, createAnswerLng = null;
+let createAnswerMarker = null;
+let createdQuestions = [];
 
-  map = L.map('map', {
+// ── SPIEL-KARTE (dunkel, Ländergrenzen) ─────────────────────────────────────
+function ensureGameMap() {
+  if (gameMapInited) { setTimeout(() => gameMap.invalidateSize(), 80); return; }
+  gameMapInited = true;
+
+  gameMap = L.map('map', {
     zoomControl: true, attributionControl: false,
-    minZoom: 2, worldCopyJump: false,
-    maxBounds: [[-90, -200], [90, 200]]
-  }).setView([20, 10], 2);
+    minZoom: 2, maxBounds: [[-90,-200],[90,200]]
+  }).setView([20,10],2);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 18, noWrap: false
-  }).addTo(map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    maxZoom:18, noWrap:false
+  }).addTo(gameMap);
 
   // Ländergrenzen
   fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
-    .then(r => r.json())
-    .then(world => {
-      const countries = topojson.feature(world, world.objects.countries);
-      L.geoJSON(countries, {
-        style: { color: '#3a5f8a', weight: 0.7, fillColor: '#1a2d45', fillOpacity: 0.4 }
-      }).addTo(map);
-    }).catch(() => {});
+    .then(r=>r.json()).then(world=>{
+      L.geoJSON(topojson.feature(world,world.objects.countries),{
+        style:{color:'#3a5f8a',weight:.8,fillColor:'#1a2d45',fillOpacity:.35}
+      }).addTo(gameMap);
+    }).catch(()=>{});
 
-  // Hauptstädte
-  const capLayer = L.layerGroup().addTo(map);
-  CAPITALS.forEach(([lat, lng, name, country]) => {
-    L.circleMarker([lat, lng], {
-      radius: 3, fillColor: '#f0c040', color: '#f0c040',
-      weight: 1, fillOpacity: 0.8, opacity: 0.8
-    }).bindTooltip(`<b>${name}</b><br><small>${country}</small>`,
-      { direction: 'top', className: 'cap-tooltip' })
-      .addTo(capLayer);
+  gameMap.on('click',e=>{
+    if(currentPhase!=='question'||isLocked)return;
+    placeGamePin(e.latlng.lat,e.latlng.lng);
   });
 
-  // Klick-Handler
-  map.on('click', e => {
-    if (currentPhase !== 'question' || isLocked) return;
-    placePin(e.latlng.lat, e.latlng.lng);
-  });
-
-  setTimeout(() => map.invalidateSize(), 100);
+  setTimeout(()=>gameMap.invalidateSize(),100);
 }
 
-function placePin(lat, lng) {
-  myLatLng = { lat, lng };
-  if (myMarker) map.removeLayer(myMarker);
-  const initial = (document.getElementById('inp-name').value || '?').charAt(0).toUpperCase();
+// ── ERSTELLUNGS-KARTE (OSM volle Details) ────────────────────────────────────
+function ensureCreateMap() {
+  if (createMapInited) { setTimeout(()=>createMap.invalidateSize(),80); return; }
+  createMapInited = true;
+
+  createMap = L.map('create-map', {
+    zoomControl: true, attributionControl: false,
+    minZoom: 2, maxBounds: [[-90,-200],[90,200]]
+  }).setView([20,10],2);
+
+  // OpenStreetMap – vollständige Details wie Google Maps
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19, noWrap:false
+  }).addTo(createMap);
+
+  createMap.on('click',e=>{
+    setCreateMarker(e.latlng.lat,e.latlng.lng);
+  });
+
+  setTimeout(()=>createMap.invalidateSize(),100);
+}
+
+function setCreateMarker(lat,lng){
+  createAnswerLat = lat;
+  createAnswerLng = lng;
+  if(createAnswerMarker) createMap.removeLayer(createAnswerMarker);
+
   const icon = L.divIcon({
-    html: `<div class="player-pin me" style="background:${myColor()}">${initial}</div>`,
-    className: '', iconSize: [28, 28], iconAnchor: [14, 14]
+    html:`<div class="answer-pin" style="background:#ff4757">✓</div>`,
+    className:'', iconSize:[24,24], iconAnchor:[12,12]
   });
-  myMarker = L.marker([lat, lng], { icon, zIndexOffset: 500 }).addTo(map);
+  createAnswerMarker = L.marker([lat,lng],{icon}).addTo(createMap);
+
+  const st = document.getElementById('marker-status');
+  st.className = 'marker-status set';
+  st.textContent = `📍 Punkt gesetzt: ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`;
+  document.getElementById('create-map-hint').style.display='none';
+  updateSubmitBtn();
+}
+
+// ── SPIELFELD-MARKER ─────────────────────────────────────────────────────────
+function placeGamePin(lat,lng){
+  myLatLng = {lat,lng};
+  if(myMarker) gameMap.removeLayer(myMarker);
+  const ini = myInitial();
+  const icon = L.divIcon({
+    html:`<div class="player-pin me-pin" style="background:${myColor()}">${ini}</div>`,
+    className:'', iconSize:[28,28], iconAnchor:[14,14]
+  });
+  myMarker = L.marker([lat,lng],{icon,zIndexOffset:500}).addTo(gameMap);
   const btn = document.getElementById('lock-btn');
-  btn.className = 'ready';
-  btn.textContent = '🔒 Antwort einloggen';
-  btn.disabled = false;
+  btn.className='ready';
+  btn.textContent='🔒 Antwort einloggen';
+  btn.disabled=false;
 }
 
-function clearMarkers() {
-  if (myMarker) { map.removeLayer(myMarker); myMarker = null; }
-  resultMarkers.forEach(m => map.removeLayer(m));
-  resultMarkers = [];
-  if (correctMarker) { map.removeLayer(correctMarker); correctMarker = null; }
+function clearGameMarkers(){
+  if(myMarker){gameMap.removeLayer(myMarker);myMarker=null;}
+  resultMarkers.forEach(m=>gameMap.removeLayer(m));
+  resultMarkers=[];
+  if(correctMarker){gameMap.removeLayer(correctMarker);correctMarker=null;}
 }
 
-function myColor() { return colorMap[myId] || COLORS[0]; }
+function myColor(){ return colorMap[myId]||COLORS[0]; }
+function myInitial(){
+  return (document.getElementById('inp-name').value||'?').charAt(0).toUpperCase();
+}
+
+// ── ORTSUCHE (Nominatim) ─────────────────────────────────────────────────────
+async function searchLoc(){
+  const q = document.getElementById('loc-search').value.trim();
+  if(!q) return;
+  try{
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&accept-language=de`);
+    const data = await r.json();
+    if(data.length>0){
+      const lat=+data[0].lat, lng=+data[0].lon;
+      createMap.setView([lat,lng],14);
+      toast(`📍 "${data[0].display_name.split(',')[0]}" gefunden – klicke für den genauen Punkt`);
+    } else {
+      toast('Ort nicht gefunden – versuche einen anderen Begriff',true);
+    }
+  }catch(e){
+    toast('Suche fehlgeschlagen',true);
+  }
+}
+
+// ── FRAGE EINREICHEN ─────────────────────────────────────────────────────────
+function updateSubmitBtn(){
+  const text = document.getElementById('create-q-text').value.trim();
+  const hasMarker = createAnswerLat!==null;
+  const btn = document.getElementById('create-submit-btn');
+  btn.disabled = !(text && hasMarker);
+}
+
+function submitQuestion(){
+  const text = document.getElementById('create-q-text').value.trim();
+  const hint = document.getElementById('create-q-hint').value.trim();
+  if(!text||createAnswerLat===null) return;
+
+  socket.emit('submit_question',{
+    text, lat:createAnswerLat, lng:createAnswerLng, hint
+  });
+
+  // Lokal speichern für Anzeige
+  createdQuestions.push({text,hint,lat:createAnswerLat,lng:createAnswerLng});
+
+  // Reset form
+  document.getElementById('create-q-text').value='';
+  document.getElementById('create-q-hint').value='';
+  document.getElementById('loc-search').value='';
+  createAnswerLat=null; createAnswerLng=null;
+  if(createAnswerMarker){createMap.removeLayer(createAnswerMarker);createAnswerMarker=null;}
+  document.getElementById('marker-status').className='marker-status';
+  document.getElementById('marker-status').textContent='📍 Noch kein Punkt auf der Karte gesetzt';
+  document.getElementById('create-map-hint').style.display='block';
+  document.getElementById('create-submit-btn').disabled=true;
+  createMap.setView([20,10],2);
+}
 
 // ── SOCKET ───────────────────────────────────────────────────────────────────
-function connectSocket() {
+function connectSocket(){
   socket = io();
 
-  socket.on('room_created', ({ code }) => {
-    currentRoom = code;
-    showLobby(code);
+  socket.on('room_created',({code})=>{
+    currentRoom=code; showLobby(code);
   });
-
-  socket.on('joined', ({ code }) => {
-    currentRoom = code;
-    showLobby(code);
+  socket.on('joined',({code})=>{
+    currentRoom=code; showLobby(code);
   });
-
-  socket.on('state', st => {
-    if (st.myId) myId = st.myId;
+  socket.on('state',st=>{
+    if(st.myId) myId=st.myId;
     applyState(st);
   });
+  socket.on('msg',text=>toast(text));
+  socket.on('err',msg=>toast('❌ '+msg,true));
 
-  socket.on('msg', text => toast(text));
-  socket.on('err', msg => toast('❌ ' + msg, true));
+  // Erstellungsphase startet
+  socket.on('start_creating',({questionsPerPlayer})=>{
+    currentPhase='creating';
+    createdQuestions=[];
+    createAnswerLat=null; createAnswerLng=null;
+    renderCreatePills(0, questionsPerPlayer);
+    document.getElementById('create-title').textContent=`✏️ Frage 1 / ${questionsPerPlayer} erstellen`;
+    document.getElementById('waiting-msg').style.display='none';
+    document.getElementById('create-submit-btn').disabled=true;
+    document.getElementById('create-q-text').value='';
+    document.getElementById('create-q-hint').value='';
+    document.getElementById('marker-status').className='marker-status';
+    document.getElementById('marker-status').textContent='📍 Noch kein Punkt auf der Karte gesetzt';
+    document.getElementById('create-map-hint').style.display='block';
+    showScreen('screen-create');
+  });
 
-  socket.on('new_question', ({ text, qIdx, totalQ }) => {
-    currentPhase = 'question';
-    isLocked = false;
-    myLatLng = null;
-    clearMarkers();
+  // Eigene Frage bestätigt
+  socket.on('question_ack',({count,max})=>{
+    renderCreatePills(count,max);
+    renderCreatedList();
+    document.getElementById('created-list-section').style.display='block';
+    if(count<max){
+      document.getElementById('create-title').textContent=`✏️ Frage ${count+1} / ${max} erstellen`;
+      toast(`✅ Frage ${count} gespeichert!`);
+    } else {
+      document.getElementById('create-title').textContent=`✅ Alle ${max} Fragen eingereicht!`;
+      // Formular ausblenden, nur Warten anzeigen
+      document.querySelector('.create-form-section').style.display='none';
+      document.getElementById('waiting-msg').style.display='block';
+      toast(`🎉 Alle deine Fragen sind eingereicht!`);
+    }
+  });
 
-    document.getElementById('q-progress').textContent = `Frage ${qIdx + 1} / ${totalQ}`;
-    document.getElementById('q-text').textContent = text;
+  // Fortschritt aller Spieler
+  socket.on('creation_progress',progress=>{
+    renderAllProgress(progress);
+  });
 
-    const btn = document.getElementById('lock-btn');
-    btn.className = '';
-    btn.textContent = '📍 Klicke auf die Karte';
-    btn.disabled = true;
+  // Neue Frage (Spiel)
+  socket.on('new_question',({text,qIdx,totalQ,creatorName})=>{
+    currentPhase='question';
+    isLocked=false;
+    myLatLng=null;
+    clearGameMarkers();
+
+    document.getElementById('q-progress').textContent=`Frage ${qIdx+1} / ${totalQ}`;
+    document.getElementById('q-creator').textContent=creatorName?`von ${creatorName}`:'';
+    document.getElementById('q-text').textContent=text;
+
+    const btn=document.getElementById('lock-btn');
+    btn.className='';
+    btn.textContent='📍 Klicke auf die Karte';
+    btn.disabled=true;
 
     document.getElementById('results-overlay').classList.remove('show');
+    document.querySelector('.create-form-section') && (document.querySelector('.create-form-section').style.display='');
     showScreen('screen-game');
-    map.setView([20, 10], 2);
+    gameMap&&gameMap.setView([20,10],2);
   });
 
-  socket.on('player_locked', ({ playerId, name }) => {
-    if (playerState[playerId]) playerState[playerId].locked = true;
+  socket.on('player_locked',({playerId,name})=>{
+    if(playerState[playerId]) playerState[playerId].locked=true;
     renderPlayersBar();
-    if (playerId !== myId) toast(`${name} hat eingeloggt ✓`);
+    if(playerId!==myId) toast(`${name} hat eingeloggt ✓`);
   });
 
-  socket.on('round_results', ({ results, correct, scores, qIdx, totalQ }) => {
-    currentPhase = 'results';
+  socket.on('round_results',({results,correct,scores,qIdx,totalQ})=>{
+    currentPhase='results';
 
-    // Richtiger Standort
-    const cIcon = L.divIcon({
-      html: '<div class="correct-pin"></div>',
-      className: '', iconSize: [22, 22], iconAnchor: [11, 11]
-    });
-    correctMarker = L.marker([correct.lat, correct.lng], { icon: cIcon, zIndexOffset: 1000 })
+    const cIcon=L.divIcon({html:'<div class="correct-pin"></div>',
+      className:'',iconSize:[22,22],iconAnchor:[11,11]});
+    correctMarker=L.marker([correct.lat,correct.lng],{icon:cIcon,zIndexOffset:1000})
       .bindPopup(`<b>✅ Richtige Antwort</b><br>${correct.info}`)
-      .addTo(map);
+      .addTo(gameMap);
     correctMarker.openPopup();
 
-    // Spieler-Antworten
-    const bounds = [[correct.lat, correct.lng]];
-    results.forEach(r => {
-      bounds.push([r.lat, r.lng]);
-      const col = colorMap[r.id] || '#888';
-      const ini = r.name.charAt(0).toUpperCase();
-      const pIcon = L.divIcon({
-        html: `<div class="player-pin" style="background:${col}">${ini}</div>`,
-        className: '', iconSize: [28, 28], iconAnchor: [14, 14]
+    const bounds=[[correct.lat,correct.lng]];
+    results.forEach(r=>{
+      bounds.push([r.lat,r.lng]);
+      const col=colorMap[r.id]||'#888';
+      const ini=r.name.charAt(0).toUpperCase();
+      const pIcon=L.divIcon({
+        html:`<div class="player-pin" style="background:${col}">${ini}</div>`,
+        className:'',iconSize:[28,28],iconAnchor:[14,14]
       });
-      const m = L.marker([r.lat, r.lng], { icon: pIcon })
+      const m=L.marker([r.lat,r.lng],{icon:pIcon})
         .bindPopup(`<b>${r.name}</b><br>${Math.round(r.dist)} km entfernt · +${r.pts} Pkt`)
-        .addTo(map);
+        .addTo(gameMap);
       resultMarkers.push(m);
-
-      const line = L.polyline([[r.lat, r.lng], [correct.lat, correct.lng]], {
-        color: col, weight: 1.5, opacity: 0.5, dashArray: '5,5'
-      }).addTo(map);
+      const line=L.polyline([[r.lat,r.lng],[correct.lat,correct.lng]],{
+        color:col,weight:1.5,opacity:.5,dashArray:'5,5'
+      }).addTo(gameMap);
       resultMarkers.push(line);
     });
 
-    if (bounds.length) map.fitBounds(bounds, { padding: [55, 55], maxZoom: 10 });
-    showResults(results, correct, scores, qIdx, totalQ);
+    if(bounds.length) gameMap.fitBounds(bounds,{padding:[55,55],maxZoom:10});
+    showResults(results,correct,scores,qIdx,totalQ);
   });
 
-  socket.on('ready_update', ({ count, total }) => {
-    document.getElementById('ready-count').textContent = `Bereit: ${count} / ${total}`;
+  socket.on('ready_update',({count,total})=>{
+    document.getElementById('ready-count').textContent=`Bereit: ${count} / ${total}`;
   });
 
-  socket.on('game_over', ({ scores }) => {
+  socket.on('game_over',({scores})=>{
     document.getElementById('results-overlay').classList.remove('show');
     showGameOver(scores);
   });
 }
 
-// ── STATE MANAGEMENT ─────────────────────────────────────────────────────────
-function applyState(st) {
-  // Farben zuweisen
-  st.players.forEach((p, i) => {
-    if (!colorMap[p.id]) colorMap[p.id] = COLORS[Object.keys(colorMap).length % COLORS.length];
-    playerState[p.id] = { ...p, color: colorMap[p.id] };
+// ── STATE ────────────────────────────────────────────────────────────────────
+function applyState(st){
+  st.players.forEach(p=>{
+    if(!colorMap[p.id]) colorMap[p.id]=COLORS[Object.keys(colorMap).length%COLORS.length];
+    playerState[p.id]={...p,color:colorMap[p.id]};
   });
 
-  if (st.phase === 'lobby') {
-    renderLobbyPlayers(st.players, st.hostId);
-    const isHost = st.hostId === myId;
-    document.getElementById('start-btn').style.display = isHost ? 'block' : 'none';
-    document.getElementById('lobby-hint').style.display = isHost ? 'none' : 'block';
+  if(st.phase==='lobby'){
+    renderLobbyPlayers(st.players,st.hostId);
+    const isHost=st.hostId===myId;
+    document.getElementById('start-btn').style.display=isHost?'block':'none';
+    document.getElementById('lobby-hint').style.display=isHost?'none':'block';
   }
-
-  if (currentPhase === 'question') renderPlayersBar();
+  if(st.phase==='creating'&&st.creationProgress){
+    renderAllProgress(st.creationProgress);
+  }
+  if(currentPhase==='question') renderPlayersBar();
 }
 
 // ── UI ───────────────────────────────────────────────────────────────────────
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  if (id === 'screen-game') {
-    setTimeout(() => { ensureMap(); }, 60);
-  }
+  if(id==='screen-game') setTimeout(()=>{ensureGameMap();gameMap&&gameMap.invalidateSize();},60);
+  if(id==='screen-create') setTimeout(()=>{ensureCreateMap();createMap&&createMap.invalidateSize();},60);
 }
 
-function showLobby(code) {
-  const url = `${location.origin}?r=${code}`;
-  document.getElementById('lobby-code').textContent = code;
-  document.getElementById('lobby-link-a').href = url;
-  document.getElementById('lobby-link-a').textContent = url;
+function showLobby(code){
+  const url=`${location.origin}?r=${code}`;
+  document.getElementById('lobby-code').textContent=code;
+  document.getElementById('lobby-link-a').href=url;
+  document.getElementById('lobby-link-a').textContent=url;
   showScreen('screen-lobby');
 }
 
-function copyLink() {
-  const url = `${location.origin}?r=${currentRoom}`;
-  navigator.clipboard.writeText(url).then(() => toast('📋 Link kopiert!')).catch(() => {});
+function copyLink(){
+  const url=`${location.origin}?r=${currentRoom}`;
+  navigator.clipboard.writeText(url).then(()=>toast('📋 Link kopiert!')).catch(()=>{});
 }
 
-function renderLobbyPlayers(players, hostId) {
-  const list = document.getElementById('lobby-players');
-  list.innerHTML = players.map(p => {
-    const col = colorMap[p.id] || '#888';
-    const isMe = p.id === myId;
-    const isHost = p.id === hostId;
+function renderLobbyPlayers(players,hostId){
+  document.getElementById('lobby-players').innerHTML=players.map(p=>{
+    const col=colorMap[p.id]||'#888';
     return `<div class="player-item">
       <div class="p-dot" style="background:${col}"></div>
-      <span class="p-name">${p.name}${isMe ? ' <span class="p-you">(du)</span>' : ''}</span>
-      ${isHost ? '<span class="badge badge-host">HOST</span>' : ''}
-      <span style="color:var(--muted);font-size:.8rem">${p.score} Pkt</span>
+      <span class="p-name">${p.name}${p.id===myId?' <span class="p-you">(du)</span>':''}</span>
+      ${p.id===hostId?'<span class="badge badge-host">HOST</span>':''}
     </div>`;
   }).join('');
 }
 
-function renderPlayersBar() {
-  const bar = document.getElementById('players-bar');
-  if (!bar) return;
-  bar.innerHTML = Object.values(playerState).map(p =>
-    `<div class="pstat ${p.locked ? 'locked' : ''}">
+function renderPlayersBar(){
+  const bar=document.getElementById('players-bar');
+  if(!bar)return;
+  bar.innerHTML=Object.values(playerState).map(p=>
+    `<div class="pstat ${p.locked?'locked':''}">
       <div class="pstat-dot" style="background:${p.color}"></div>
       <span class="pstat-name">${p.name}</span>
-      <span class="pstat-icon">${p.locked ? '✓' : '○'}</span>
+      <span style="font-size:.72rem">${p.locked?'✓':'○'}</span>
     </div>`
   ).join('');
 }
 
-function showResults(results, correct, scores, qIdx, totalQ) {
-  document.getElementById('res-title').textContent = `Runde ${qIdx + 1} / ${totalQ} · Ergebnis`;
-  document.getElementById('res-info').textContent = `📍 ${correct.info}`;
+function renderCreatePills(done,total){
+  const container=document.getElementById('create-pills');
+  container.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('div');
+    d.className='pill'+(i<done?' done':i===done?' active':'');
+    container.appendChild(d);
+  }
+}
 
-  const ranks = ['🥇', '🥈', '🥉'];
-  const totalPlayers = Object.keys(playerState).length;
-  document.getElementById('res-list').innerHTML = results.map((r, i) => {
-    const col = colorMap[r.id] || '#888';
-    const ini = r.name.charAt(0).toUpperCase();
-    const sc = scores.find(s => s.id === r.id);
-    return `<div class="result-item">
-      <div class="res-rank">${ranks[i] || ''}</div>
-      <div class="res-marker" style="background:${col}">${ini}</div>
-      <div class="res-info-col">
-        <div class="res-name">${r.name}${r.id === myId ? ' <small style="color:var(--muted)">(du)</small>' : ''}</div>
-        <div class="res-dist">${Math.round(r.dist)} km entfernt · Gesamt: ${sc ? sc.score : 0} Pkt</div>
+function renderCreatedList(){
+  const list=document.getElementById('created-q-list');
+  list.innerHTML=createdQuestions.map((q,i)=>`
+    <div class="created-q-item">
+      <div class="cq-num">${i+1}.</div>
+      <div>
+        <div class="cq-text">${q.text}</div>
+        ${q.hint?`<div class="cq-hint">📍 ${q.hint}</div>`:''}
       </div>
-      <div class="res-pts ${r.pts === 0 ? 'zero' : ''}">+${r.pts}</div>
+    </div>
+  `).join('');
+}
+
+function renderAllProgress(progress){
+  const list=document.getElementById('all-prog-list');
+  list.innerHTML=progress.map(p=>{
+    const pct=Math.round(p.count/QUESTIONS_PER_PLAYER*100);
+    const col=colorMap[p.id]||'#888';
+    return `<div class="prog-row">
+      <div style="width:8px;height:8px;border-radius:50%;background:${col};flex-shrink:0"></div>
+      <span style="flex:0 0 auto;font-size:.82rem;min-width:5rem">${p.name}${p.id===myId?' (du)':''}</span>
+      <div class="prog-bar-wrap">
+        <div class="prog-bar ${p.done?'full':''}" style="width:${pct}%"></div>
+      </div>
+      <div class="prog-count">${p.count}/${QUESTIONS_PER_PLAYER}</div>
+      ${p.done?'<span style="color:var(--green);font-size:.72rem">✓</span>':'<span style="width:.75rem"></span>'}
+    </div>`;
+  }).join('');
+}
+
+function showResults(results,correct,scores,qIdx,totalQ){
+  document.getElementById('res-title').textContent=`Runde ${qIdx+1} / ${totalQ} · Ergebnis`;
+  document.getElementById('res-creator').textContent=correct.creatorName?`Frage von ${correct.creatorName}`:'';
+  document.getElementById('res-info').textContent=`📍 ${correct.info}`;
+
+  const ranks=['🥇','🥈','🥉'];
+  document.getElementById('res-list').innerHTML=results.map((r,i)=>{
+    const col=colorMap[r.id]||'#888';
+    const sc=scores.find(s=>s.id===r.id);
+    return `<div class="result-item">
+      <div class="res-rank">${ranks[i]||''}</div>
+      <div class="res-marker" style="background:${col}">${r.name.charAt(0).toUpperCase()}</div>
+      <div class="res-info-col">
+        <div class="res-name">${r.name}${r.id===myId?' <small style="color:var(--muted)">(du)</small>':''}</div>
+        <div class="res-dist">${Math.round(r.dist)} km entfernt · Gesamt: ${sc?sc.score:0} Pkt</div>
+      </div>
+      <div class="res-pts ${r.pts===0?'zero':''}">+${r.pts}</div>
     </div>`;
   }).join('');
 
-  document.getElementById('ready-count').textContent = `Bereit: 0 / ${results.length}`;
-  document.getElementById('ready-btn').disabled = false;
-  document.getElementById('ready-btn').textContent = '✅ Weiter!';
+  document.getElementById('ready-count').textContent=`Bereit: 0 / ${results.length}`;
+  document.getElementById('ready-btn').disabled=false;
+  document.getElementById('ready-btn').textContent='✅ Weiter!';
   document.getElementById('results-overlay').classList.add('show');
 }
 
-function showGameOver(scores) {
-  const ranks = ['🥇', '🥈', '🥉'];
-  document.getElementById('go-scores').innerHTML = scores.map((s, i) => {
-    const col = colorMap[s.id] || '#888';
+function showGameOver(scores){
+  const ranks=['🥇','🥈','🥉'];
+  document.getElementById('go-scores').innerHTML=scores.map((s,i)=>{
+    const col=colorMap[s.id]||'#888';
     return `<div class="score-item">
-      <div class="sc-rank">${ranks[i] || ''}</div>
+      <div class="sc-rank">${ranks[i]||''}</div>
       <div class="sc-dot" style="background:${col}"></div>
-      <div class="sc-name">${s.name}${s.id === myId ? ' <small style="color:var(--muted)">(du)</small>' : ''}</div>
+      <div class="sc-name">${s.name}${s.id===myId?' <small style="color:var(--muted)">(du)</small>':''}</div>
       <div class="sc-pts">${s.score} Pkt</div>
     </div>`;
   }).join('');
@@ -645,79 +809,72 @@ function showGameOver(scores) {
 }
 
 let toastTimer;
-function toast(msg, isErr = false) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.style.display = 'block';
-  el.style.borderColor = isErr ? 'var(--red)' : 'var(--border)';
+function toast(msg,isErr=false){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.display='block';
+  el.style.borderColor=isErr?'var(--red)':'var(--border)';
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.style.display = 'none', 2800);
+  toastTimer=setTimeout(()=>el.style.display='none',2800);
 }
 
 // ── AKTIONEN ─────────────────────────────────────────────────────────────────
-function createRoom() {
-  const name = document.getElementById('inp-name').value.trim();
-  if (!name) { toast('❌ Bitte gib deinen Namen ein', true); return; }
-  if (!socket) connectSocket();
-  socket.emit('create_room', { name });
+function createRoom(){
+  const name=document.getElementById('inp-name').value.trim();
+  if(!name){toast('❌ Bitte gib deinen Namen ein',true);return;}
+  if(!socket) connectSocket();
+  socket.emit('create_room',{name});
 }
-
-function joinRoom() {
-  const name = document.getElementById('inp-name').value.trim();
-  const code = document.getElementById('inp-code').value.trim().toUpperCase();
-  if (!name) { toast('❌ Bitte gib deinen Namen ein', true); return; }
-  if (code.length < 4) { toast('❌ Bitte gib einen gültigen Code ein', true); return; }
-  if (!socket) connectSocket();
-  socket.emit('join_room', { code, name });
+function joinRoom(){
+  const name=document.getElementById('inp-name').value.trim();
+  const code=document.getElementById('inp-code').value.trim().toUpperCase();
+  if(!name){toast('❌ Bitte gib deinen Namen ein',true);return;}
+  if(code.length<4){toast('❌ Bitte gib einen gültigen Code ein',true);return;}
+  if(!socket) connectSocket();
+  socket.emit('join_room',{code,name});
 }
-
-function startGame() {
-  socket.emit('start_game');
+function startGame(){ socket.emit('start_game'); }
+function lockAnswer(){
+  if(!myLatLng||isLocked)return;
+  isLocked=true;
+  socket.emit('lock_answer',myLatLng);
+  const btn=document.getElementById('lock-btn');
+  btn.className='locked-state';
+  btn.textContent='✅ Eingeloggt – warte auf andere …';
+  btn.disabled=true;
 }
-
-function lockAnswer() {
-  if (!myLatLng || isLocked) return;
-  isLocked = true;
-  socket.emit('lock_answer', myLatLng);
-  const btn = document.getElementById('lock-btn');
-  btn.className = 'locked';
-  btn.textContent = '✅ Eingeloggt – warte auf andere …';
-  btn.disabled = true;
-}
-
-function readyNext() {
-  const btn = document.getElementById('ready-btn');
-  btn.disabled = true;
-  btn.textContent = '⏳ Warte …';
+function readyNext(){
+  const btn=document.getElementById('ready-btn');
+  btn.disabled=true;
+  btn.textContent='⏳ Warte …';
   socket.emit('ready_next');
 }
 
-// ── INITIALISIERUNG ──────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  // Raum-Code aus URL auslesen
-  const params = new URLSearchParams(location.search);
-  const roomCode = params.get('r');
-  if (roomCode) {
-    document.getElementById('inp-code').value = roomCode.toUpperCase();
+// ── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  const params=new URLSearchParams(location.search);
+  const roomCode=params.get('r');
+  if(roomCode){
+    document.getElementById('inp-code').value=roomCode.toUpperCase();
     document.getElementById('inp-name').focus();
-    toast(`🔗 Tritt Raum ${roomCode.toUpperCase()} bei – gib deinen Namen ein!`);
+    toast(`🔗 Tritt Raum ${roomCode.toUpperCase()} bei!`);
   }
-
-  // Socket sofort verbinden
   connectSocket();
 
-  // Enter-Taste in Name-/Code-Feldern
-  document.getElementById('inp-name').addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      const code = document.getElementById('inp-code').value.trim();
-      code ? joinRoom() : createRoom();
+  document.getElementById('inp-name').addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      const code=document.getElementById('inp-code').value.trim();
+      code?joinRoom():createRoom();
     }
   });
-  document.getElementById('inp-code').addEventListener('keydown', e => {
-    if (e.key === 'Enter') joinRoom();
+  document.getElementById('inp-code').addEventListener('keydown',e=>{
+    if(e.key==='Enter') joinRoom();
   });
-  document.getElementById('inp-code').addEventListener('input', e => {
-    e.target.value = e.target.value.toUpperCase();
+  document.getElementById('inp-code').addEventListener('input',e=>{
+    e.target.value=e.target.value.toUpperCase();
+  });
+  document.getElementById('loc-search').addEventListener('keydown',e=>{
+    if(e.key==='Enter') searchLoc();
   });
 });
 </script>
