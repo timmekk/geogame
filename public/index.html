@@ -246,7 +246,9 @@ button{cursor:pointer}
   max-width:90vw;text-align:center}
 
 /* ── LEAFLET OVERRIDES ── */
-.leaflet-container{background:#0d1520!important;font-family:inherit}
+/* Ozean-Farbe: gilt für beide Karten; beim Spiel sind keine Kacheln hinterlegt */
+.leaflet-container{background:#0c1825!important;font-family:inherit}
+#map{background:#0c1825}
 .leaflet-popup-content-wrapper{background:var(--surface);border:1px solid var(--border);
   color:var(--text);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
 .leaflet-popup-tip{background:var(--surface)}
@@ -479,14 +481,25 @@ function changeQPP(delta) {
 function ensureGameMap() {
   if (gameMapOk) { setTimeout(() => gameMap.invalidateSize(), 80); return; }
   gameMapOk = true;
-  gameMap = L.map('map', { zoomControl: true, attributionControl: false, minZoom: 2 }).setView([20,10], 2);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(gameMap);
-  fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json')
+
+  // Keine Kacheln – reines GeoJSON → keinerlei Straßen oder Beschriftungen bei jedem Zoom
+  gameMap = L.map('map', {
+    zoomControl: true, attributionControl: false,
+    minZoom: 2, maxZoom: 10, zoomSnap: 0.5
+  }).setView([20,10], 2);
+
+  fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json')
     .then(r => r.json()).then(w => {
+      // Landfläche (gefüllt)
+      L.geoJSON(topojson.feature(w, w.objects.land), {
+        style: { fillColor: '#1b2f3d', fillOpacity: 1, color: 'none', weight: 0 }
+      }).addTo(gameMap);
+      // Ländergrenzen (nur Linien)
       L.geoJSON(topojson.feature(w, w.objects.countries), {
-        style: { color: '#3a5f8a', weight: .8, fillColor: '#1a2d45', fillOpacity: .35 }
+        style: { color: '#4a8298', weight: 0.7, fillOpacity: 0 }
       }).addTo(gameMap);
     }).catch(() => {});
+
   gameMap.on('click', e => {
     if (currentPhase !== 'question' || isLocked) return;
     placeGamePin(e.latlng.lat, e.latlng.lng);
