@@ -129,36 +129,24 @@ button{cursor:pointer}
 .search-btn:active{background:var(--bg)}
 
 /* ── STEP 1: KARTE ── */
-#cr-map-step{flex:1;display:flex;flex-direction:column;min-height:0}
-#cr-map-wrap{flex:1;position:relative;min-height:0}
+#cr-map-wrap{flex:1;position:relative;min-height:120px}
 #create-map{height:100%;width:100%}
-.map-hint{position:absolute;top:.5rem;left:50%;transform:translateX(-50%);
-  background:rgba(13,17,23,.9);border:1px solid var(--border);border-radius:20px;
+.cr-pin-hint{position:absolute;top:.6rem;left:50%;transform:translateX(-50%);
+  background:rgba(13,17,23,.88);border:1px solid var(--border);border-radius:20px;
   padding:.35rem .875rem;font-size:.78rem;color:var(--muted);pointer-events:none;
-  z-index:500;white-space:nowrap}
-/* bottom bar on map screen */
-#cr-map-bar{background:var(--surface);border-top:1px solid var(--border);
-  padding:.625rem .875rem;flex-shrink:0}
-.map-bar-status{font-size:.82rem;color:var(--muted);margin-bottom:.5rem;
-  display:flex;align-items:center;gap:.4rem}
-.map-bar-status.set{color:var(--green)}
-#cr-next-btn{width:100%;min-height:50px;padding:.75rem;background:var(--accent);
-  color:#0d1117;border:none;border-radius:12px;font-size:1rem;font-weight:600;
-  -webkit-appearance:none}
-#cr-next-btn:disabled{opacity:.35}
+  z-index:500;white-space:nowrap;max-width:90%;text-align:center}
+.cr-pin-hint.set{color:var(--green);border-color:var(--green)}
 
-/* ── STEP 2: FORMULAR ── */
-#cr-form-step{flex:1;display:none;flex-direction:column;overflow-y:auto;
-  -webkit-overflow-scrolling:touch;padding:1rem}
-.cr-form-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;
-  padding-bottom:.875rem;border-bottom:1px solid var(--border)}
-.cr-form-back{min-width:40px;min-height:40px;background:var(--s2);
-  border:1px solid var(--border);border-radius:10px;display:flex;
-  align-items:center;justify-content:center;font-size:1.1rem;-webkit-appearance:none}
-.cr-form-title{font-size:1rem;font-weight:700}
-.location-preview{padding:.625rem .875rem;background:var(--s2);border:1px solid var(--green);
-  border-radius:10px;font-size:.82rem;color:var(--green);margin-bottom:.875rem;
-  display:flex;align-items:flex-start;gap:.4rem}
+/* Formular-Panel (dauerhaft unten) */
+#cr-form-panel{flex-shrink:0;background:var(--surface);border-top:1px solid var(--border);
+  padding:.625rem .875rem;display:flex;flex-direction:column;gap:.5rem}
+#cr-form-panel textarea,#cr-form-panel input{
+  width:100%;padding:.65rem .875rem;background:var(--s2);
+  border:1px solid var(--border);border-radius:10px;color:var(--text);
+  font-size:16px;outline:none;resize:none;-webkit-appearance:none}
+#cr-form-panel textarea{min-height:68px}
+#cr-form-panel textarea:focus,#cr-form-panel input:focus{border-color:var(--accent)}
+#create-submit-btn{min-height:50px}
 
 /* ── ALLE FORTSCHRITT ── */
 #cr-all-progress{background:var(--surface);border-top:1px solid var(--border);
@@ -339,7 +327,7 @@ button{cursor:pointer}
 <!-- ══ FRAGEN ERSTELLEN ═══════════════════════════════════════════ -->
 <div id="screen-create" class="screen">
 
-  <!-- Header mit Fortschritt + Suche -->
+  <!-- Header: Fortschritt + Suche -->
   <div id="cr-header">
     <div class="cr-top">
       <div class="cr-title" id="cr-title">✏️ Frage 1 / 5 erstellen</div>
@@ -352,53 +340,25 @@ button{cursor:pointer}
     </div>
   </div>
 
-  <!-- SCHRITT 1: Karte -->
-  <div id="cr-map-step">
-    <div id="cr-map-wrap">
-      <div id="create-map"></div>
-      <div class="map-hint" id="cr-map-hint">👆 Tippe auf den gesuchten Ort</div>
-    </div>
-    <div id="cr-map-bar">
-      <div class="map-bar-status" id="cr-status">
-        <span>📍</span><span>Noch kein Ort ausgewählt</span>
-      </div>
-      <button id="cr-next-btn" onclick="goToFormStep()" disabled>
-        ✏️ Frage dazu schreiben →
-      </button>
-    </div>
+  <!-- Karte -->
+  <div id="cr-map-wrap">
+    <div id="create-map"></div>
+    <div class="cr-pin-hint" id="cr-pin-hint">👆 Tippe auf den gesuchten Ort</div>
   </div>
 
-  <!-- SCHRITT 2: Formular -->
-  <div id="cr-form-step">
-    <div class="cr-form-header">
-      <button class="cr-form-back" onclick="goToMapStep()">←</button>
-      <div class="cr-form-title" id="cr-form-title">Frage eingeben</div>
-    </div>
-
-    <div class="location-preview" id="cr-loc-preview">
-      📍 <span id="cr-loc-text">–</span>
-    </div>
-
-    <div class="fg">
-      <label>Deine Frage</label>
-      <textarea id="create-q-text" rows="3"
-        placeholder="z.B. »Wo befindet sich das Kolosseum?«"
-        oninput="updateSubmitBtn()"></textarea>
-    </div>
-    <div class="fg">
-      <label>Antwort-Hinweis <span style="text-transform:none;font-weight:400;color:var(--muted)">(optional)</span></label>
-      <input id="create-q-hint" type="text" placeholder="z.B. »Rom, Italien«">
-    </div>
-
-    <button class="btn btn-primary" id="create-submit-btn" onclick="submitQuestion()" disabled style="margin-top:.25rem">
+  <!-- Formular (immer sichtbar unter der Karte) -->
+  <div id="cr-form-panel">
+    <textarea id="create-q-text" rows="2"
+      placeholder="Deine Frage, z.B. »Wo steht das Kolosseum?«"
+      oninput="updateSubmitBtn()"></textarea>
+    <input id="create-q-hint" type="text"
+      placeholder="Antwort-Hinweis (optional), z.B. »Rom, Italien«">
+    <button id="create-submit-btn" class="btn btn-primary" onclick="submitQuestion()" disabled>
       ➕ Frage hinzufügen
     </button>
-    <button class="btn btn-secondary" onclick="goToMapStep()" style="margin-top:.5rem">
-      ← Zurück zur Karte
-    </button>
   </div>
 
-  <!-- Fortschritt aller Spieler (immer sichtbar) -->
+  <!-- Fortschritt aller Spieler -->
   <div id="cr-all-progress">
     <div id="all-prog-list"></div>
     <div class="waiting-hint" id="cr-waiting" style="display:none">
@@ -521,12 +481,10 @@ function setCrMarker(lat, lng) {
   if (crMarker) crMap.removeLayer(crMarker);
   const icon = L.divIcon({ html: '<div class="answer-pin-create">✓</div>', className: '', iconSize: [26,26], iconAnchor: [13,13] });
   crMarker = L.marker([lat, lng], { icon }).addTo(crMap);
-  document.getElementById('cr-map-hint').style.display = 'none';
-  const st = document.getElementById('cr-status');
-  st.className = 'map-bar-status set';
-  st.innerHTML = `<span>📍</span><span>${lat.toFixed(4)}°, ${lng.toFixed(4)}°</span>`;
-  document.getElementById('cr-loc-text').textContent = `${lat.toFixed(5)}°N, ${lng.toFixed(5)}°E`;
-  document.getElementById('cr-next-btn').disabled = false;
+  const hint = document.getElementById('cr-pin-hint');
+  hint.className = 'cr-pin-hint set';
+  hint.textContent = `📍 ${lat.toFixed(4)}°N, ${lng.toFixed(4)}°E`;
+  updateSubmitBtn();
 }
 
 function placeGamePin(lat, lng) {
@@ -569,23 +527,10 @@ async function searchLoc() {
   document.querySelector('.search-btn').textContent = '🔍';
 }
 
-// ── ERSTELLUNGS-STEPS ────────────────────────────────────────────────────────
-function goToFormStep() {
-  if (crLat === null) return;
-  document.getElementById('cr-map-step').style.display = 'none';
-  document.getElementById('cr-form-step').style.display = 'flex';
-  setTimeout(() => document.getElementById('create-q-text').focus(), 150);
-}
-
-function goToMapStep() {
-  document.getElementById('cr-form-step').style.display = 'none';
-  document.getElementById('cr-map-step').style.display = '';
-  setTimeout(() => crMap && crMap.invalidateSize(), 60);
-}
-
+// ── ERSTELLUNG ───────────────────────────────────────────────────────────────
 function updateSubmitBtn() {
   const text = document.getElementById('create-q-text').value.trim();
-  document.getElementById('create-submit-btn').disabled = !text;
+  document.getElementById('create-submit-btn').disabled = !(text && crLat !== null);
 }
 
 function submitQuestion() {
@@ -599,13 +544,11 @@ function submitQuestion() {
   document.getElementById('loc-search').value = '';
   if (crMarker) { crMap.removeLayer(crMarker); crMarker = null; }
   crLat = null; crLng = null;
-  document.getElementById('cr-status').className = 'map-bar-status';
-  document.getElementById('cr-status').innerHTML = '<span>📍</span><span>Noch kein Ort ausgewählt</span>';
-  document.getElementById('cr-next-btn').disabled = true;
-  document.getElementById('cr-map-hint').style.display = 'block';
+  const hint2 = document.getElementById('cr-pin-hint');
+  hint2.className = 'cr-pin-hint';
+  hint2.textContent = '👆 Tippe auf den gesuchten Ort';
   document.getElementById('create-submit-btn').disabled = true;
   crMap.setView([20,10], 2);
-  goToMapStep();
 }
 
 function renderCrPills(done, total) {
@@ -653,18 +596,17 @@ function connectSocket() {
   socket.on('start_creating', ({ questionsPerPlayer }) => {
     currentPhase = 'creating';
     crLat = null; crLng = null;
+    if (crMarker) { crMap && crMap.removeLayer(crMarker); crMarker = null; }
     document.getElementById('cr-waiting').style.display = 'none';
-    document.querySelector('#cr-form-step').style.display = 'none';
-    document.querySelector('#cr-map-step').style.display = '';
-    document.getElementById('cr-next-btn').disabled = true;
+    document.getElementById('cr-form-panel').style.display = 'flex';
     document.getElementById('create-q-text').value = '';
     document.getElementById('create-q-hint').value = '';
-    document.getElementById('cr-status').className = 'map-bar-status';
-    document.getElementById('cr-status').innerHTML = '<span>📍</span><span>Noch kein Ort ausgewählt</span>';
-    document.getElementById('cr-map-hint').style.display = 'block';
+    document.getElementById('create-submit-btn').disabled = true;
+    const h = document.getElementById('cr-pin-hint');
+    h.className = 'cr-pin-hint';
+    h.textContent = '👆 Tippe auf den gesuchten Ort';
     renderCrPills(0, questionsPerPlayer);
     document.getElementById('cr-title').textContent = `✏️ Frage 1 / ${questionsPerPlayer} erstellen`;
-    document.getElementById('cr-form-title').textContent = `Frage 1 / ${questionsPerPlayer}`;
     showScreen('screen-create');
   });
 
@@ -672,12 +614,10 @@ function connectSocket() {
     renderCrPills(count, max);
     if (count < max) {
       document.getElementById('cr-title').textContent = `✏️ Frage ${count + 1} / ${max} erstellen`;
-      document.getElementById('cr-form-title').textContent = `Frage ${count + 1} / ${max}`;
       toast(`✅ Frage ${count} gespeichert!`);
     } else {
       document.getElementById('cr-title').textContent = `✅ Alle ${max} Fragen eingereicht!`;
-      document.getElementById('cr-map-step').style.display = 'none';
-      document.getElementById('cr-form-step').style.display = 'none';
+      document.getElementById('cr-form-panel').style.display = 'none';
       document.getElementById('cr-waiting').style.display = 'block';
       toast('🎉 Fertig! Warte auf die anderen …');
     }
