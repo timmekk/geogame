@@ -178,7 +178,7 @@ button{cursor:pointer}
 .pstat{display:flex;align-items:center;gap:.3rem;font-size:.75rem;
   padding:.2rem .5rem;border-radius:6px;background:var(--s2);
   border:1px solid var(--border);transition:border-color .2s}
-.pstat.locked{border-color:var(--green)}
+.pstat.disconnected{opacity:.45;border-style:dashed}
 .pstat-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .pstat-name{color:var(--muted)}
 .pstat.locked .pstat-name{color:var(--text)}
@@ -225,6 +225,13 @@ button{cursor:pointer}
 .sc-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
 .sc-name{flex:1;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sc-pts{font-size:1.05rem;font-weight:700;color:var(--gold)}
+
+/* ── RECONNECT BANNER ── */
+#reconnect-banner{position:fixed;top:0;left:0;right:0;z-index:10000;
+  background:#f0c040;color:#000;text-align:center;padding:.5rem 1rem;
+  font-size:.85rem;font-weight:600;display:none;
+  padding-top:calc(.5rem + var(--safe-t))}
+#reconnect-banner.show{display:block}
 
 /* ── TOAST ── */
 #toast{position:fixed;top:calc(.875rem + var(--safe-t));left:50%;
@@ -404,13 +411,16 @@ button{cursor:pointer}
     <div class="card">
       <div class="card-title" style="margin-bottom:1.25rem">🏆 Spielende!</div>
       <div id="go-scores"></div>
-      <button class="btn btn-primary" style="margin-top:1.5rem" onclick="location.reload()">
+      <button class="btn btn-primary" style="margin-top:1.5rem" onclick="newGame()">
         🔄 Neues Spiel
       </button>
     </div>
   </div>
 </div>
 
+<div id="reconnect-banner">
+  <span>🔄 Verbindung unterbrochen – verbinde neu …</span>
+</div>
 <div id="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -578,9 +588,77 @@ function renderAllProgress(progress) {
   }).join('');
 }
 
+// ── SESSION (überleben Tab-Wechsel & kurze Verbindungsabbrüche) ───────────────
+function saveToken(token, code) {
+  sessionStorage.setItem('gq_token', token);
+  sessionStorage.setItem('gq_code',  code);
+}
+
+function clearSession() {
+  sessionStorage.removeItem('gq_token');
+  sessionStorage.removeItem('gq_code');
+  sessionStorage.removeItem('gq_name');
+}
+
+function showReconnectBanner(visible) {
+  document.getElementById('reconnect-banner').classList.toggle('show', visible);
+}
+
 // ── SOCKET ───────────────────────────────────────────────────────────────────
 function connectSocket() {
-  socket = io();
+  socket = io({ reconnectionDelay: 1000, reconnectionDelayMax: 5000 });
+
+  // Bei jeder (Wieder-)Verbindung: gespeichertes Token senden
+  socket.on('connect', () => {
+    showReconnectBanner(false);
+    const token = sessionStorage.getItem('gq_token');
+    if (token) socket.emit('rejoin_room', { token });
+  });
+
+  socket.on('disconnect', () => {
+    showReconnectBanner(true);
+  });
+
+  // Server schickt Token nach create/join
+  socket.on('session', ({ token, code }) => {
+    saveToken(token, code);
+    const name = document.getElementById('inp-name').value.trim();
+    if (name) sessionStorage.setItem('gq_name', name);
+  });
+
+  // Wiedereintritt erfolgreich
+  socket.on('rejoined', ({ code }) => {
+    currentRoom = code;
+    showReconnectBanner(false);
+    // Name-Feld wiederherstellen (nach Page-Refresh)
+    const savedName = sessionStorage.getItem('gq_name');
+    if (savedName && !document.getElementById('inp-name').value.trim()) {
+      document.getElementById('inp-name').value = savedName;
+    }
+    toast('👋 Wieder verbunden!');
+    // Phase-spezifische Events (new_question, start_creating …) folgen vom Server
+  });
+
+  // Wiedereintritt fehlgeschlagen (Raum weg oder Token abgelaufen)
+  socket.on('rejoin_failed', msg => {
+    showReconnectBanner(false);
+    clearSession();
+    currentRoom = null;
+    showScreen('screen-home');
+    toast('ℹ️ ' + msg);
+  });
+
+  // Mitspieler kurz weg (innerhalb Grace-Period – noch kein echtes Verlassen)
+  socket.on('player_away', ({ name, playerId }) => {
+    if (playerId !== myId) toast(`📶 ${name} ist kurz getrennt …`);
+  });
+
+  // Nach Reconnect: eigene Antwort war schon gespeichert
+  socket.on('already_locked', () => {
+    isLocked = true;
+    const btn = document.getElementById('lock-btn');
+    if (btn) { btn.className = 'locked-state'; btn.textContent = '✅ Eingeloggt – warte auf andere …'; btn.disabled = true; }
+  });
 
   socket.on('room_created', ({ code }) => { currentRoom = code; showLobby(code); });
   socket.on('joined', ({ code }) => { currentRoom = code; showLobby(code); });
@@ -647,6 +725,10 @@ function connectSocket() {
 
   socket.on('round_results', ({ results, correct, scores, qIdx, totalQ }) => {
     currentPhase = 'results';
+    // Zeige Ergebnis-Screen falls noch nicht sichtbar (z.B. nach Wiedereintritt)
+    showScreen('screen-game');
+    clearGameMarkers();
+
     const cIcon = L.divIcon({ html: '<div class="correct-pin"></div>', className: '', iconSize: [22,22], iconAnchor: [11,11] });
     correctMarker = L.marker([correct.lat, correct.lng], { icon: cIcon, zIndexOffset: 1000 })
       .bindPopup(`<b>✅ Richtige Antwort</b><br>${correct.info}`).addTo(gameMap);
@@ -726,10 +808,10 @@ function renderPlayersBar() {
   const bar = document.getElementById('players-bar');
   if (!bar) return;
   bar.innerHTML = Object.values(playerState).map(p =>
-    `<div class="pstat ${p.locked?'locked':''}">
+    `<div class="pstat ${p.locked?'locked':''} ${p.disconnected?'disconnected':''}">
       <div class="pstat-dot" style="background:${p.color}"></div>
       <span class="pstat-name">${p.name}</span>
-      <span style="font-size:.7rem;margin-left:.1rem">${p.locked?'✓':'○'}</span>
+      <span style="font-size:.7rem;margin-left:.1rem">${p.disconnected?'…':p.locked?'✓':'○'}</span>
     </div>`).join('');
 }
 
@@ -780,6 +862,7 @@ function toast(msg, isErr = false) {
 }
 
 // ── AKTIONEN ─────────────────────────────────────────────────────────────────
+function newGame() { clearSession(); location.reload(); }
 function createRoom() {
   const name = document.getElementById('inp-name').value.trim();
   if (!name) { toast('❌ Bitte gib deinen Namen ein', true); return; }
@@ -812,16 +895,25 @@ function readyNext() {
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
+  // URL-Parameter: Raum-Code vorausfüllen
   const params = new URLSearchParams(location.search);
   const rc = params.get('r');
   if (rc) {
     document.getElementById('inp-code').value = rc.toUpperCase();
-    document.getElementById('inp-name').focus();
     toast(`🔗 Tritt Raum ${rc.toUpperCase()} bei!`);
   }
+
+  // Namen aus sessionStorage wiederherstellen (nach Tab-Wechsel / Refresh)
+  const savedName = sessionStorage.getItem('gq_name');
+  if (savedName && !document.getElementById('inp-name').value) {
+    document.getElementById('inp-name').value = savedName;
+  }
+  if (!rc) document.getElementById('inp-name').focus();
+
+  // Socket verbinden – der connect-Handler startet ggf. automatischen Wiedereintritt
   connectSocket();
 
-  // Keyboard shortcuts
+  // Tastatur-Shortcuts
   document.getElementById('inp-name').addEventListener('keydown', e => {
     if (e.key === 'Enter') { const c = document.getElementById('inp-code').value.trim(); c ? joinRoom() : createRoom(); }
   });
