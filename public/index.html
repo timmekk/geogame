@@ -191,13 +191,44 @@ button{cursor:pointer}
 
 /* ══ ERGEBNIS-SHEET ══════════════════════════════════════════════ */
 #results-overlay{position:fixed;inset:0;z-index:800;
-  display:none;flex-direction:column;justify-content:flex-end;background:rgba(0,0,0,.65)}
+  display:none;flex-direction:column;justify-content:flex-end;
+  background:rgba(0,0,0,.65);transition:background .25s}
 #results-overlay.show{display:flex}
+/* Wenn eingeklappt: Hintergrund weg, nur Sheet unten bleibt tippbar */
+#results-overlay.collapsed{background:transparent;pointer-events:none}
+#results-overlay.collapsed .results-sheet{pointer-events:all}
+
 .results-sheet{background:var(--surface);border-radius:20px 20px 0 0;
-  border-top:1px solid var(--border);padding:1.1rem 1rem;
-  max-height:82vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.res-title{font-size:1rem;font-weight:700;margin-bottom:.15rem}
-.res-creator{font-size:.72rem;color:var(--muted);margin-bottom:.25rem;font-style:italic}
+  border-top:1px solid var(--border);
+  transition:border-radius .25s}
+#results-overlay.collapsed .results-sheet{border-radius:12px;margin:.5rem}
+
+/* Immer sichtbare Leiste */
+.res-bar{display:flex;align-items:center;gap:.5rem;padding:.6rem .875rem;
+  border-bottom:1px solid var(--border)}
+#results-overlay.collapsed .res-bar{border-bottom:none}
+.res-toggle-btn{display:flex;align-items:center;gap:.35rem;
+  background:var(--s2);border:1px solid var(--border);border-radius:8px;
+  padding:.35rem .625rem;font-size:.8rem;color:var(--text);white-space:nowrap;
+  min-height:36px;-webkit-appearance:none}
+.res-toggle-btn:active{background:var(--bg)}
+#res-toggle-icon{font-size:.75rem;transition:transform .2s}
+.res-round-info{flex:1;font-size:.78rem;color:var(--muted);
+  text-align:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Mini-Weiter-Button in der Leiste (nur wenn eingeklappt) */
+.btn-mini-weiter{display:none;align-items:center;justify-content:center;
+  padding:.35rem .75rem;min-height:36px;background:var(--gold);color:#0d1117;
+  border:none;border-radius:8px;font-size:.85rem;font-weight:600;
+  white-space:nowrap;-webkit-appearance:none}
+.btn-mini-weiter:disabled{opacity:.35}
+#results-overlay.collapsed .btn-mini-weiter{display:flex}
+
+/* Ausklappbarer Inhalt */
+#res-content{padding:0 .875rem .875rem;max-height:70vh;overflow-y:auto;
+  -webkit-overflow-scrolling:touch}
+#results-overlay.collapsed #res-content{display:none}
+
+.res-creator{font-size:.72rem;color:var(--muted);margin-top:.5rem;margin-bottom:.2rem;font-style:italic}
 .res-info{font-size:.8rem;color:var(--muted);margin-bottom:.75rem;
   padding:.45rem .7rem;background:var(--s2);border-radius:8px;
   border-left:3px solid var(--green)}
@@ -394,14 +425,28 @@ button{cursor:pointer}
 <!-- ══ ERGEBNIS ═══════════════════════════════════════════════════ -->
 <div id="results-overlay">
   <div class="results-sheet">
-    <div class="res-title" id="res-title">Ergebnis</div>
-    <div class="res-creator" id="res-creator"></div>
-    <div class="res-info" id="res-info"></div>
-    <div id="res-list"></div>
-    <div class="ready-area">
-      <div class="ready-count" id="ready-count">Bereit: 0 / ?</div>
-      <button class="btn btn-gold" id="ready-btn" onclick="readyNext()">✅ Weiter!</button>
+
+    <!-- Immer sichtbare Leiste -->
+    <div class="res-bar">
+      <button class="res-toggle-btn" id="res-toggle-btn" onclick="toggleResults()">
+        <span id="res-toggle-icon">▼</span>
+        <span id="res-toggle-label">Ausblenden</span>
+      </button>
+      <span class="res-round-info" id="res-round-info"></span>
+      <button class="btn-mini-weiter" id="res-mini-weiter" onclick="readyNext()">✅ Weiter!</button>
     </div>
+
+    <!-- Ausklappbarer Inhalt -->
+    <div id="res-content">
+      <div class="res-creator" id="res-creator"></div>
+      <div class="res-info" id="res-info"></div>
+      <div id="res-list"></div>
+      <div class="ready-area">
+        <div class="ready-count" id="ready-count">Bereit: 0 / ?</div>
+        <button class="btn btn-gold" id="ready-btn" onclick="readyNext()">✅ Weiter!</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -747,7 +792,10 @@ function connectSocket() {
   });
 
   socket.on('ready_update', ({ count, total }) => {
-    document.getElementById('ready-count').textContent = `Bereit: ${count} / ${total}`;
+    const txt = `Bereit: ${count} / ${total}`;
+    document.getElementById('ready-count').textContent = txt;
+    const mini = document.getElementById('res-mini-weiter');
+    if (mini && !mini.disabled) mini.textContent = `✅ Weiter! (${count}/${total})`;
   });
 
   socket.on('game_over', ({ scores }) => {
@@ -815,14 +863,32 @@ function renderPlayersBar() {
     </div>`).join('');
 }
 
+let resultsCollapsed = false;
+
+function toggleResults() {
+  resultsCollapsed = !resultsCollapsed;
+  const overlay = document.getElementById('results-overlay');
+  overlay.classList.toggle('collapsed', resultsCollapsed);
+  document.getElementById('res-toggle-icon').textContent  = resultsCollapsed ? '▲' : '▼';
+  document.getElementById('res-toggle-label').textContent = resultsCollapsed ? 'Ergebnis' : 'Ausblenden';
+  if (!resultsCollapsed) gameMap && gameMap.invalidateSize();
+}
+
 function showResults(results, correct, scores, qIdx, totalQ) {
-  document.getElementById('res-title').textContent = `Runde ${qIdx+1} / ${totalQ} · Ergebnis`;
+  resultsCollapsed = false;
+  const overlay = document.getElementById('results-overlay');
+  overlay.classList.remove('collapsed');
+  document.getElementById('res-toggle-icon').textContent  = '▼';
+  document.getElementById('res-toggle-label').textContent = 'Ausblenden';
+  document.getElementById('res-round-info').textContent   = `Runde ${qIdx+1} / ${totalQ}`;
+
   document.getElementById('res-creator').textContent = correct.creatorName ? `Frage von ${correct.creatorName}` : '';
-  document.getElementById('res-info').textContent = `📍 ${correct.info}`;
+  document.getElementById('res-info').textContent    = `📍 ${correct.info}`;
+
   const ranks = ['🥇','🥈','🥉'];
   document.getElementById('res-list').innerHTML = results.map((r,i) => {
     const col = colorMap[r.id]||'#888';
-    const sc = scores.find(s=>s.id===r.id);
+    const sc  = scores.find(s=>s.id===r.id);
     return `<div class="result-item">
       <div class="res-rank">${ranks[i]||''}</div>
       <div class="res-avatar" style="background:${col}">${r.name.charAt(0).toUpperCase()}</div>
@@ -833,10 +899,14 @@ function showResults(results, correct, scores, qIdx, totalQ) {
       <div class="res-pts ${r.pts===0?'zero':''}">+${r.pts}</div>
     </div>`;
   }).join('');
-  document.getElementById('ready-count').textContent = `Bereit: 0 / ${results.length}`;
-  document.getElementById('ready-btn').disabled = false;
-  document.getElementById('ready-btn').textContent = '✅ Weiter!';
-  document.getElementById('results-overlay').classList.add('show');
+
+  const total = results.length;
+  document.getElementById('ready-count').textContent      = `Bereit: 0 / ${total}`;
+  document.getElementById('ready-btn').disabled           = false;
+  document.getElementById('ready-btn').textContent        = '✅ Weiter!';
+  document.getElementById('res-mini-weiter').disabled     = false;
+  document.getElementById('res-mini-weiter').textContent  = '✅ Weiter!';
+  overlay.classList.add('show');
 }
 
 function showGameOver(scores) {
@@ -888,8 +958,8 @@ function lockAnswer() {
   btn.disabled = true;
 }
 function readyNext() {
-  const btn = document.getElementById('ready-btn');
-  btn.disabled = true; btn.textContent = '⏳ Warte …';
+  [document.getElementById('ready-btn'), document.getElementById('res-mini-weiter')]
+    .forEach(b => { if (b) { b.disabled = true; b.textContent = '⏳ Warte …'; } });
   socket.emit('ready_next');
 }
 
